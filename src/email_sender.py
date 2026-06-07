@@ -63,7 +63,7 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
 
     msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
 
-    with smtplib.SMTP(config["smtp_server"], config["smtp_port"]) as server:
+    with smtplib.SMTP(config["smtp_server"], config["smtp_port"], timeout=60) as server:
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, all_recipients, msg.as_string())
