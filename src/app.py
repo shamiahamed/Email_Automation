@@ -1,17 +1,21 @@
 import json
 import os
+import sys
 from flask import Flask, render_template, request, jsonify
-from email_sender import send_email, preview_email
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from email_sender import send_email, preview_email
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+app = Flask(__name__, template_folder=os.path.join(ROOT_DIR, "templates"))
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
-app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "uploads")
+app.config["UPLOAD_FOLDER"] = os.path.join(ROOT_DIR, "uploads")
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(BASE_DIR, "config.json")
+config_path = os.path.join(ROOT_DIR, "config.json")
 if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
