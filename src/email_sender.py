@@ -63,12 +63,24 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
 
     msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
 
-    with smtplib.SMTP(config["smtp_server"], config["smtp_port"], timeout=60) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, all_recipients, msg.as_string())
+    last_error = None
+    ports = [465, 587]
+    for port in ports:
+        try:
+            if port == 465:
+                server = smtplib.SMTP_SSL(config["smtp_server"], port, timeout=30)
+            else:
+                server = smtplib.SMTP(config["smtp_server"], port, timeout=30)
+                server.starttls()
+            with server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, all_recipients, msg.as_string())
+            return True
+        except Exception as e:
+            last_error = e
+            continue
 
-    return True
+    raise last_error
 
 
 def preview_email(config, recipient_email, role, company_name=None, resume_path=None, cc_self=False):
