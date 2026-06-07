@@ -1,4 +1,5 @@
 import smtplib
+import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -63,14 +64,15 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
 
     msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
 
+    socket.setdefaulttimeout(15)
     last_error = None
     ports = [465, 587]
     for port in ports:
         try:
             if port == 465:
-                server = smtplib.SMTP_SSL(config["smtp_server"], port, timeout=30)
+                server = smtplib.SMTP_SSL(config["smtp_server"], port, timeout=15)
             else:
-                server = smtplib.SMTP(config["smtp_server"], port, timeout=30)
+                server = smtplib.SMTP(config["smtp_server"], port, timeout=15)
                 server.starttls()
             with server:
                 server.login(sender_email, sender_password)

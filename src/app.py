@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import socket
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 
@@ -54,6 +55,27 @@ def extract_form_data():
 @app.route("/")
 def index():
     return render_template("index.html", roles=config["roles"], sender_email=config["sender_email"])
+
+
+@app.route("/diagnose")
+def diagnose():
+    host = "smtp.gmail.com"
+    results = {}
+    for port in [465, 587]:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(5)
+            s.connect((host, port))
+            results[str(port)] = "reachable"
+            s.close()
+        except Exception as e:
+            results[str(port)] = str(e)
+    try:
+        ip = socket.gethostbyname(host)
+        results["ip"] = ip
+    except Exception as e:
+        results["ip"] = str(e)
+    return jsonify(results)
 
 
 @app.route("/preview", methods=["POST"])
