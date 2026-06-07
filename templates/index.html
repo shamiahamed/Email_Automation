@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Automation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            align-self: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        input, select, .custom-role-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+        .custom-role-input {
+            display: none;
+            margin-top: 8px;
+        }
+        .custom-role-input.show {
+            display: block;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #4a6cf7;
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 400;
+            font-size: 14px;
+            color: #555;
+        }
+        .file-upload {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .file-upload:hover { border-color: #4a6cf7; }
+        .file-upload input { display: none; }
+        .file-upload-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .file-upload-label strong { color: #4a6cf7; }
+        .file-name {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #333;
+            display: none;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .btn-row button {
+            flex: 1;
+        }
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary {
+            background: #4a6cf7;
+            color: white;
+        }
+        .btn-primary:hover { background: #3b5de7; }
+        .btn-primary:disabled {
+            background: #a0b0f0;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #e8ecf4;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #dce0ea; }
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            font-size: 14px;
+        }
+        .status.success {
+            display: block;
+            background: #e6f7e6;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .status.error {
+            display: block;
+            background: #fdecea;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 0 auto;
+        }
+        .spinner.dark {
+            border-color: #4a6cf7;
+            border-top-color: transparent;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+        .modal-field {
+            margin-bottom: 12px;
+        }
+        .modal-field .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .modal-field .value {
+            font-size: 15px;
+            color: #333;
+            word-break: break-word;
+        }
+        .modal-body-box {
+            background: #f8f9fb;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-actions button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Automation</h1>
+        <p class="subtitle">Send your resume with one click</p>
+
+        <form id="emailForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="recipient">Recipient Email</label>
+                <input type="email" id="recipient" name="recipient" placeholder="hr@company.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role">
+                    <option value="">Select a role...</option>
+                </select>
+                <input type="text" id="customRole" class="custom-role-input" placeholder="Enter custom role">
+            </div>
+
+            <div class="form-group">
+                <label for="company">Company Name</label>
+                <input type="text" id="company" name="company_name" placeholder="e.g. Google, Amazon" required>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="ccSelf" name="cc_self">
+                    <label for="ccSelf">CC myself ({{ sender_email }})</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Resume (PDF)</label>
+                <div class="file-upload" id="fileUpload">
+                    <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                    <div class="file-upload-label">
+                        <strong>Click to upload</strong> or drag and drop<br>
+                        PDF, DOC, DOCX
+                    </div>
+                    <div class="file-name" id="fileName"></div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button type="button" class="btn-secondary" id="previewBtn">
+                    <div class="btn-content">
+                        <span>Preview</span>
+                        <div class="spinner dark" id="previewSpinner"></div>
+                    </div>
+                </button>
+                <button type="submit" class="btn-primary" id="sendBtn">
+                    <div class="btn-content">
+                        <span id="btnText">Send Resume</span>
+                        <div class="spinner" id="sendSpinner"></div>
+                    </div>
+                </button>
+            </div>
+        </form>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal">
+            <h2>Email Preview</h2>
+            <div class="modal-field">
+                <div class="label">To</div>
+                <div class="value" id="previewTo"></div>
+            </div>
+            <div class="modal-field" id="previewCcRow" style="display:none">
+                <div class="label">CC</div>
+                <div class="value" id="previewCc"></div>
+            </div>
+            <div class="modal-field" id="previewCompanyRow" style="display:none">
+                <div class="label">Company</div>
+                <div class="value" id="previewCompany"></div>
+            </div>
+            <div class="modal-field">
+                <div class="label">Subject</div>
+                <div class="value" id="previewSubject"></div>
+            </div>
+            <div class="modal-field">
+                <div class="label">Attachment</div>
+                <div class="value" id="previewAttachment"></div>
+            </div>
+            <div class="modal-field">
+                <div class="label">Body</div>
+                <div class="modal-body-box" id="previewBody"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn-primary" id="confirmSendBtn">
+                    <div class="btn-content">
+                        <span>Confirm & Send</span>
+                        <div class="spinner" id="confirmSpinner"></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const roles = {{ roles | tojson }};
+        const roleSelect = document.getElementById('role');
+        const customRoleInput = document.getElementById('customRole');
+
+        roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role;
+            option.textContent = role;
+            roleSelect.appendChild(option);
+        });
+
+        roleSelect.addEventListener('change', () => {
+            if (roleSelect.value === 'Other') {
+                customRoleInput.classList.add('show');
+                customRoleInput.focus();
+            } else {
+                customRoleInput.classList.remove('show');
+            }
+        });
+
+        document.getElementById('fileUpload').addEventListener('click', () => {
+            document.getElementById('resume').click();
+        });
+
+        document.getElementById('resume').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const fileName = document.getElementById('fileName');
+            if (file) {
+                fileName.textContent = file.name;
+                fileName.style.display = 'block';
+            }
+        });
+
+        function getFormRole() {
+            const role = roleSelect.value === 'Other' ? customRoleInput.value.trim() : roleSelect.value;
+            if (!role) {
+                showStatus('Please select or enter a role', false);
+                return null;
+            }
+            return role;
+        }
+
+        function getFormData() {
+            const formData = new FormData(document.getElementById('emailForm'));
+            const role = getFormRole();
+            if (!role) return null;
+            formData.set('role', role);
+            return formData;
+        }
+
+        function showStatus(msg, isSuccess) {
+            const el = document.getElementById('status');
+            el.textContent = msg;
+            el.className = 'status ' + (isSuccess ? 'success' : 'error');
+        }
+
+        function setLoading(id, loading) {
+            const btn = document.getElementById(id);
+            const text = btn.querySelector('span');
+            const spinner = btn.querySelector('.spinner');
+            if (loading) {
+                btn.disabled = true;
+                text.textContent = id === 'previewBtn' ? 'Previewing...' : 'Sending...';
+                spinner.style.display = 'block';
+            } else {
+                btn.disabled = false;
+                text.textContent = id === 'previewBtn' ? 'Preview' : 'Send Resume';
+                spinner.style.display = 'none';
+            }
+        }
+
+        document.getElementById('previewBtn').addEventListener('click', async () => {
+            const formData = getFormData();
+            if (!formData) return;
+
+            setLoading('previewBtn', true);
+            document.getElementById('status').className = 'status';
+
+            try {
+                const res = await fetch('/preview', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('previewTo').textContent = data.to;
+                    const ccRow = document.getElementById('previewCcRow');
+                    if (data.cc) {
+                        ccRow.style.display = 'block';
+                        document.getElementById('previewCc').textContent = data.cc;
+                    } else {
+                        ccRow.style.display = 'none';
+                    }
+                    const companyRow = document.getElementById('previewCompanyRow');
+                    if (data.company) {
+                        companyRow.style.display = 'block';
+                        document.getElementById('previewCompany').textContent = data.company;
+                    } else {
+                        companyRow.style.display = 'none';
+                    }
+                    document.getElementById('previewSubject').textContent = data.subject;
+                    document.getElementById('previewBody').textContent = data.body;
+                    document.getElementById('previewAttachment').textContent = data.attachment || 'None';
+                    document.getElementById('previewModal').classList.add('show');
+                } else {
+                    showStatus(data.message, false);
+                }
+            } catch (err) {
+                showStatus('Network error. Check if server is running.', false);
+            } finally {
+                setLoading('previewBtn', false);
+            }
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            document.getElementById('previewModal').classList.remove('show');
+        });
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('previewModal').classList.remove('show');
+            }
+        });
+
+        document.getElementById('confirmSendBtn').addEventListener('click', async () => {
+            const confirmBtn = document.getElementById('confirmSendBtn');
+            const spinner = document.getElementById('confirmSpinner');
+            confirmBtn.disabled = true;
+            confirmBtn.querySelector('span').textContent = 'Sending...';
+            spinner.style.display = 'block';
+
+            const formData = getFormData();
+            if (!formData) return;
+
+            try {
+                const res = await fetch('/send', { method: 'POST', body: formData });
+                const data = await res.json();
+                document.getElementById('previewModal').classList.remove('show');
+                showStatus(data.message, data.success);
+                if (data.success) {
+                    document.getElementById('emailForm').reset();
+                    document.getElementById('fileName').style.display = 'none';
+                }
+            } catch (err) {
+                document.getElementById('previewModal').classList.remove('show');
+                showStatus('Network error. Check if server is running.', false);
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.querySelector('span').textContent = 'Confirm & Send';
+                spinner.style.display = 'none';
+            }
+        });
+
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = getFormData();
+            if (!formData) return;
+
+            setLoading('sendBtn', true);
+            document.getElementById('status').className = 'status';
+
+            try {
+                const res = await fetch('/send', { method: 'POST', body: formData });
+                const data = await res.json();
+                showStatus(data.message, data.success);
+                if (data.success) {
+                    document.getElementById('emailForm').reset();
+                    document.getElementById('fileName').style.display = 'none';
+                }
+            } catch (err) {
+                showStatus('Network error. Check if server is running.', false);
+            } finally {
+                setLoading('sendBtn', false);
+            }
+        });
+    </script>
+</body>
+</html>
