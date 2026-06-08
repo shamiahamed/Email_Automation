@@ -61,6 +61,7 @@ Warm regards,
 def send_email(config, recipient_email, role, resume_path, cc_self=False, company_name=None):
     sender_email = config["sender_email"]
     sender_password = config["sender_password"]
+    smtp_login = config.get("smtp_login", sender_email)
 
     msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
 
@@ -75,7 +76,7 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
                 server = smtplib.SMTP(config["smtp_server"], port, timeout=15)
                 server.starttls()
             with server:
-                server.login(sender_email, sender_password)
+                server.login(smtp_login, sender_password)
                 server.sendmail(sender_email, all_recipients, msg.as_string())
             return True
         except Exception as e:
