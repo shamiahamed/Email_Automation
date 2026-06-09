@@ -21,15 +21,13 @@ def build_email(config, recipient_email, role, company_name=None, resume_path=No
 
     body = f"""Dear HR,
 
-I hope this message finds you well. I am writing to express my enthusiastic interest in the {role} position at {company_name}. With a strong commitment to excellence and a proven ability to deliver results, I am confident that my skills and experience make me a strong candidate for this opportunity.
+I am writing to apply for the {role} position at {company_name}. Please find my resume attached for your review.
 
-Throughout my professional journey, I have cultivated a versatile skill set that allows me to adapt quickly and contribute meaningfully from day one. I am particularly drawn to this opportunity at {company_name} as it aligns perfectly with my passion for driving impact and continuous growth.
+I am confident that my skills and experience make me a strong fit for this role. I would welcome the opportunity to discuss how I can contribute to your team.
 
-Please find my resume attached for your kind review. I would welcome the opportunity to discuss how my background and dedication can add value to your team.
+Thank you for your time and consideration.
 
-Thank you sincerely for your time and consideration. I look forward to hearing from you.
-
-Warm regards,
+Best regards,
 {your_name}
 {your_phone}
 {sender_email}
@@ -70,15 +68,13 @@ def send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, comp
 
     body = f"""Dear HR,
 
-I hope this message finds you well. I am writing to express my enthusiastic interest in the {role} position at {company_name}. With a strong commitment to excellence and a proven ability to deliver results, I am confident that my skills and experience make me a strong candidate for this opportunity.
+I am writing to apply for the {role} position at {company_name}. Please find my resume attached for your review.
 
-Throughout my professional journey, I have cultivated a versatile skill set that allows me to adapt quickly and contribute meaningfully from day one. I am particularly drawn to this opportunity at {company_name} as it aligns perfectly with my passion for driving impact and continuous growth.
+I am confident that my skills and experience make me a strong fit for this role. I would welcome the opportunity to discuss how I can contribute to your team.
 
-Please find my resume attached for your kind review. I would welcome the opportunity to discuss how my background and dedication can add value to your team.
+Thank you for your time and consideration.
 
-Thank you sincerely for your time and consideration. I look forward to hearing from you.
-
-Warm regards,
+Best regards,
 {your_name}
 {your_phone}
 {your_linkedin}
