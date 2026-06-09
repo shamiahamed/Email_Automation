@@ -21,9 +21,9 @@ def build_email(config, recipient_email, role, company_name=None, resume_path=No
 
     body = f"""Dear HR,
 
-I am writing to apply for the {role} position at {company_name}. Please find my resume attached for your review.
+I hope this message finds you well. I am writing to express my interest in the {role} position at {company_name}. Please find my resume attached for your review.
 
-I am confident that my skills and experience make me a strong fit for this role. I would welcome the opportunity to discuss how I can contribute to your team.
+I am confident that my skills and experience make me a strong candidate for this opportunity. I would welcome the opportunity to discuss how I can contribute to your team.
 
 Thank you for your time and consideration.
 
@@ -68,9 +68,9 @@ def send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, comp
 
     body = f"""Dear HR,
 
-I am writing to apply for the {role} position at {company_name}. Please find my resume attached for your review.
+I hope this message finds you well. I am writing to express my interest in the {role} position at {company_name}. Please find my resume attached for your review.
 
-I am confident that my skills and experience make me a strong fit for this role. I would welcome the opportunity to discuss how I can contribute to your team.
+I am confident that my skills and experience make me a strong candidate for this opportunity. I would welcome the opportunity to discuss how I can contribute to your team.
 
 Thank you for your time and consideration.
 
