@@ -60,7 +60,7 @@ def index():
 
 @app.route("/diagnose")
 def diagnose():
-    host = "smtp.gmail.com"
+    host = config.get("smtp_server", "smtp.gmail.com")
     results = {}
     for port in [465, 587]:
         try:
