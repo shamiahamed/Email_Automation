@@ -41,7 +41,8 @@ config.setdefault("roles", [
 
 
 def extract_form_data():
-    recipient = request.form.get("recipient", "").strip()
+    raw = request.form.get("recipient", "").strip()
+    recipients = [r.strip() for r in raw.replace(";", ",").split(",") if r.strip()]
     role = request.form.get("role", "").strip()
     company_name = request.form.get("company_name", "").strip()
     cc_self = request.form.get("cc_self") == "on"
@@ -51,7 +52,7 @@ def extract_form_data():
         filename = secure_filename(file.filename)
         resume_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(resume_path)
-    return recipient, role, company_name, cc_self, resume_path
+    return recipients, role, company_name, cc_self, resume_path
 
 
 @app.route("/")
@@ -82,13 +83,13 @@ def diagnose():
 
 @app.route("/preview", methods=["POST"])
 def preview():
-    recipient, role, company_name, cc_self, resume_path = extract_form_data()
+    recipients, role, company_name, cc_self, resume_path = extract_form_data()
 
-    if not recipient or not role or not company_name:
-        return jsonify({"success": False, "message": "Recipient email, role, and company name are required."}), 400
+    if not recipients or not role or not company_name:
+        return jsonify({"success": False, "message": "Recipient email(s), role, and company name are required."}), 400
 
     try:
-        data = preview_email(config, recipient, role, company_name, resume_path, cc_self)
+        data = preview_email(config, recipients, role, company_name, resume_path, cc_self)
         data["company"] = company_name
         data["success"] = True
         return jsonify(data)
@@ -101,14 +102,15 @@ def preview():
 
 @app.route("/send", methods=["POST"])
 def send():
-    recipient, role, company_name, cc_self, resume_path = extract_form_data()
+    recipients, role, company_name, cc_self, resume_path = extract_form_data()
 
-    if not recipient or not role or not company_name:
-        return jsonify({"success": False, "message": "Recipient email, role, and company name are required."}), 400
+    if not recipients or not role or not company_name:
+        return jsonify({"success": False, "message": "Recipient email(s), role, and company name are required."}), 400
 
     try:
-        send_email(config, recipient, role, resume_path, cc_self, company_name)
-        msg = f"Resume sent successfully to {recipient}!"
+        send_email(config, recipients, role, resume_path, cc_self, company_name)
+        to_list = ", ".join(recipients)
+        msg = f"Resume sent successfully to {to_list}!"
         if cc_self:
             msg += f" (CC'd to {config['sender_email']})"
         return jsonify({"success": True, "message": msg})

@@ -11,11 +11,12 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 
-def build_email(config, recipient_email, role, company_name=None, resume_path=None, cc_self=False):
+def build_email(config, recipient_emails, role, company_name=None, resume_path=None, cc_self=False):
     sender_email = config["sender_email"]
     your_name = config["your_name"]
     your_phone = config["your_phone"]
     your_linkedin = config["your_linkedin"]
+    to_header = ", ".join(recipient_emails)
 
     subject = f"Application for {role} - {your_name}"
 
@@ -35,10 +36,10 @@ Best regards,
 
     msg = MIMEMultipart()
     msg["From"] = sender_email
-    msg["To"] = recipient_email
+    msg["To"] = to_header
     msg["Subject"] = subject
 
-    all_recipients = [recipient_email]
+    all_recipients = list(recipient_emails)
     if cc_self:
         msg["Cc"] = sender_email
         all_recipients.append(sender_email)
@@ -59,11 +60,12 @@ Best regards,
     return msg, all_recipients, attachment_name
 
 
-def send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, company_name):
+def send_via_brevo_api(config, recipient_emails, role, resume_path, cc_self, company_name):
     sender_email = config["sender_email"]
     your_name = config["your_name"]
     your_phone = config["your_phone"]
     your_linkedin = config["your_linkedin"]
+    to_header = ", ".join(recipient_emails)
     subject = f"Application for {role} - {your_name}"
 
     body = f"""Dear HR,
@@ -82,7 +84,7 @@ Best regards,
 
     payload = {
         "sender": {"name": your_name, "email": sender_email},
-        "to": [{"email": recipient_email}],
+        "to": [{"email": e} for e in recipient_emails],
         "subject": subject,
         "textContent": body,
     }
@@ -118,15 +120,15 @@ Best regards,
         raise Exception(f"Brevo API connection failed: {e.reason}")
 
 
-def send_email(config, recipient_email, role, resume_path, cc_self=False, company_name=None):
+def send_email(config, recipient_emails, role, resume_path, cc_self=False, company_name=None):
     if config.get("brevo_api_key"):
-        return send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, company_name)
+        return send_via_brevo_api(config, recipient_emails, role, resume_path, cc_self, company_name)
 
     sender_email = config["sender_email"]
     sender_password = config["sender_password"]
     smtp_login = config.get("smtp_login", sender_email)
 
-    msg, all_recipients, _ = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
+    msg, all_recipients, _ = build_email(config, recipient_emails, role, company_name, resume_path, cc_self)
 
     socket.setdefaulttimeout(15)
     last_error = None
@@ -149,10 +151,10 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
     raise last_error
 
 
-def preview_email(config, recipient_email, role, company_name=None, resume_path=None, cc_self=False):
-    msg, all_recipients, attachment_name = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
+def preview_email(config, recipient_emails, role, company_name=None, resume_path=None, cc_self=False):
+    msg, all_recipients, attachment_name = build_email(config, recipient_emails, role, company_name, resume_path, cc_self)
     return {
-        "to": recipient_email,
+        "to": ", ".join(recipient_emails),
         "cc": config["sender_email"] if cc_self else None,
         "subject": msg["Subject"],
         "body": msg.get_payload(0).get_payload(decode=True).decode("utf-8") if isinstance(msg.get_payload(0), MIMEText) else "",
