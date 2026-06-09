@@ -64,6 +64,8 @@ Warm regards,
 def send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, company_name):
     sender_email = config["sender_email"]
     your_name = config["your_name"]
+    your_phone = config["your_phone"]
+    your_linkedin = config["your_linkedin"]
     subject = f"Application for {role} - {your_name}"
 
     body = f"""Dear HR,
@@ -81,8 +83,6 @@ Warm regards,
 {your_phone}
 {your_linkedin}
 {sender_email}"""
-    your_phone = config["your_phone"]
-    your_linkedin = config["your_linkedin"]
 
     payload = {
         "sender": {"name": your_name, "email": sender_email},
