@@ -26,6 +26,7 @@ else:
 config.setdefault("sender_email", os.getenv("SENDER_EMAIL", ""))
 config.setdefault("sender_password", os.getenv("SENDER_PASSWORD", ""))
 config.setdefault("smtp_login", os.getenv("SMTP_LOGIN", config["sender_email"]))
+config.setdefault("brevo_api_key", os.getenv("BREVO_API_KEY", ""))
 config.setdefault("your_name", os.getenv("YOUR_NAME", ""))
 config.setdefault("your_phone", os.getenv("YOUR_PHONE", ""))
 config.setdefault("your_linkedin", os.getenv("YOUR_LINKEDIN", ""))

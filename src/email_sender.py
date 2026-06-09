@@ -1,10 +1,14 @@
 import smtplib
 import socket
+import base64
+import os
+import json
+import urllib.request
+import urllib.error
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-import os
 
 
 def build_email(config, recipient_email, role, company_name=None, resume_path=None, cc_self=False):
@@ -43,27 +47,90 @@ Warm regards,
 
     msg.attach(MIMEText(body, "plain"))
 
+    attachment_name = None
     if resume_path and os.path.exists(resume_path):
-        with open(resume_path, "rb") as attachment:
+        with open(resume_path, "rb") as f:
             part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
+            part.set_payload(f.read())
             encoders.encode_base64(part)
             filename = os.path.basename(resume_path)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename={filename}",
-            )
+            part.add_header("Content-Disposition", f"attachment; filename={filename}")
             msg.attach(part)
+            attachment_name = filename
 
-    return msg, all_recipients
+    return msg, all_recipients, attachment_name
+
+
+def send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, company_name):
+    sender_email = config["sender_email"]
+    your_name = config["your_name"]
+    subject = f"Application for {role} - {your_name}"
+
+    body = f"""Dear HR,
+
+I hope this message finds you well. I am writing to express my enthusiastic interest in the {role} position at {company_name}. With a strong commitment to excellence and a proven ability to deliver results, I am confident that my skills and experience make me a strong candidate for this opportunity.
+
+Throughout my professional journey, I have cultivated a versatile skill set that allows me to adapt quickly and contribute meaningfully from day one. I am particularly drawn to this opportunity at {company_name} as it aligns perfectly with my passion for driving impact and continuous growth.
+
+Please find my resume attached for your kind review. I would welcome the opportunity to discuss how my background and dedication can add value to your team.
+
+Thank you sincerely for your time and consideration. I look forward to hearing from you.
+
+Warm regards,
+{your_name}
+{your_phone}
+{your_linkedin}
+{sender_email}"""
+    your_phone = config["your_phone"]
+    your_linkedin = config["your_linkedin"]
+
+    payload = {
+        "sender": {"name": your_name, "email": sender_email},
+        "to": [{"email": recipient_email}],
+        "subject": subject,
+        "textContent": body,
+    }
+
+    if cc_self:
+        payload["cc"] = [{"email": sender_email}]
+
+    if resume_path and os.path.exists(resume_path):
+        with open(resume_path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode("utf-8")
+        payload["attachment"] = [{
+            "content": encoded,
+            "name": os.path.basename(resume_path),
+        }]
+
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=data,
+        headers={
+            "api-key": config["brevo_api_key"],
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.status == 201
+    except urllib.error.HTTPError as e:
+        err = e.read().decode("utf-8")
+        raise Exception(f"Brevo API error ({e.code}): {err}")
+    except urllib.error.URLError as e:
+        raise Exception(f"Brevo API connection failed: {e.reason}")
 
 
 def send_email(config, recipient_email, role, resume_path, cc_self=False, company_name=None):
+    if config.get("brevo_api_key"):
+        return send_via_brevo_api(config, recipient_email, role, resume_path, cc_self, company_name)
+
     sender_email = config["sender_email"]
     sender_password = config["sender_password"]
     smtp_login = config.get("smtp_login", sender_email)
 
-    msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
+    msg, all_recipients, _ = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
 
     socket.setdefaulttimeout(15)
     last_error = None
@@ -87,11 +154,11 @@ def send_email(config, recipient_email, role, resume_path, cc_self=False, compan
 
 
 def preview_email(config, recipient_email, role, company_name=None, resume_path=None, cc_self=False):
-    msg, all_recipients = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
+    msg, all_recipients, attachment_name = build_email(config, recipient_email, role, company_name, resume_path, cc_self)
     return {
         "to": recipient_email,
         "cc": config["sender_email"] if cc_self else None,
         "subject": msg["Subject"],
         "body": msg.get_payload(0).get_payload(decode=True).decode("utf-8") if isinstance(msg.get_payload(0), MIMEText) else "",
-        "attachment": os.path.basename(resume_path) if resume_path and os.path.exists(resume_path) else None,
+        "attachment": attachment_name,
     }
